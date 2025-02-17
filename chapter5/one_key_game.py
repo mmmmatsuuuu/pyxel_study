@@ -7,11 +7,13 @@ SHIP_ACCEL_DOWN = 0.02
 MAX_SHIP_SPEED = 0.8
 OBJECT_SPAWN_INTERVAL = 150
 
+
 class OneKeyGame():
+
   def __init__(self):
     pyxel.init(160, 120, title=GAME_TITLE)
 
-    pyxel.load("space_rescue.pyxres",False, False)
+    pyxel.load("space_rescue.pyxres")
 
     self.is_title = True
     self.reset_game()
@@ -27,13 +29,13 @@ class OneKeyGame():
     self.ship_y = pyxel.height / 4
     self.ship_vx = 0
     self.ship_vy = 1
-    self.ship_dir = 1 # 宇宙船の向き
-    self.is_jetting = False # ジェット噴射中かどうか
-    self.is_exploding = False # 爆発中かどうか
+    self.ship_dir = 1  # 宇宙船の向き
+    self.is_jetting = False  # ジェット噴射中かどうか
+    self.is_exploding = False  # 爆発中かどうか
 
     # マップの配置を初期化
-    self.survivors = [] # 宇宙飛行士の配置
-    self.meteors = [] # 隕石の配置
+    self.survivors = []  # 宇宙飛行士の配置
+    self.meteors = []  # 隕石の配置
 
   def update_ship(self):
     # 宇宙船の速度を更新する
@@ -41,8 +43,8 @@ class OneKeyGame():
       self.is_jetting = True
       self.ship_vy = max(self.ship_vy - SHIP_ACCEL_UP, -MAX_SHIP_SPEED)
       self.ship_vx = max(
-        min(self.ship_vx + self.ship_dir * SHIP_ACCEL_X, 1),
-        -MAX_SHIP_SPEED,
+          min(self.ship_vx + self.ship_dir * SHIP_ACCEL_X, 1),
+          -MAX_SHIP_SPEED,
       )
       pyxel.play(0, 0)
     else:
@@ -69,7 +71,7 @@ class OneKeyGame():
       self.ship_x = max_ship_x
       self.ship_vx = -abs(self.ship_vx)
       pyxel.play(0, 1)
-    
+
     if self.ship_y < 0:
       self.ship_y = 0
       self.ship_vy = abs(self.ship_vy)
@@ -81,7 +83,7 @@ class OneKeyGame():
       self.ship_y = max_ship_y
       self.ship_vy = -abs(self.ship_vy)
       pyxel.play(0, 1)
-  
+
   def update(self):
     if self.is_title:
       if pyxel.btnp(pyxel.KEY_RETURN):
@@ -94,16 +96,16 @@ class OneKeyGame():
     num_grads = 4
     grad_height = 6
     grad_start_y = pyxel.height - grad_height * num_grads
-    
+
     pyxel.cls(0)
     for i in range(num_grads):
       pyxel.dither((i + 1) / num_grads)
       pyxel.rect(
-        0,
-        grad_start_y + i * grad_height,
-        pyxel.width,
-        grad_height,
-        1,
+          0,
+          grad_start_y + i * grad_height,
+          pyxel.width,
+          grad_height,
+          1,
       )
     pyxel.dither(1)
 
@@ -114,26 +116,26 @@ class OneKeyGame():
 
     # 左右方向のジェットを描画する
     pyxel.blt(
-      self.ship_x - self.ship_dir * 3 + offset_x,
-      self.ship_y,
-      0,
-      0,
-      0,
-      8,
-      8,
-      0,
+        self.ship_x - self.ship_dir * 3 + offset_x,
+        self.ship_y,
+        0,
+        0,
+        0,
+        8,
+        8,
+        0,
     )
 
     # 下方向のジェットを描画する
     pyxel.blt(
-      self.ship_x,
-      self.ship_y + 3 + offset_y,
-      0,
-      8,
-      8,
-      8,
-      8,
-      0,
+        self.ship_x,
+        self.ship_y + 3 + offset_y,
+        0,
+        8,
+        8,
+        8,
+        8,
+        0,
     )
 
     # 宇宙船を描画する
@@ -158,6 +160,5 @@ class OneKeyGame():
     if self.is_title:
       self.draw_title()
 
+
 OneKeyGame()
-
-
