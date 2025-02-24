@@ -37,6 +37,26 @@ class OneKeyGame():
     self.survivors = []  # 宇宙飛行士の配置
     self.meteors = []  # 隕石の配置
 
+  # 宇宙船から一定距離離れた位置をランダムに算出する関数
+  def generate_distanced_pos(self, dist):
+    while True:
+      x = pyxel.rndi(0, pyxel.width - 8)
+      y = pyxel.rndi(0, pyxel.height - 8)
+      diff_x = x - self.ship_x
+      diff_y = y - self.ship_y
+      if diff_x ** 2 + diff_y ** 2 > dist ** 2:
+        return (x, y)
+
+  # 宇宙飛行士を追加する
+  def add_survivor(self):
+    survivor_pos = self.generate_distanced_pos(30)
+    self.survivors.append(survivor_pos)
+
+  # 隕石を追加する
+  def add_meteor(self):
+    meteor_pos = self.generate_distanced_pos(60)
+    self.meteors.append(meteor_pos)
+
   def update_ship(self):
     # 宇宙船の速度を更新する
     if pyxel.btn(pyxel.KEY_SPACE):
@@ -84,6 +104,40 @@ class OneKeyGame():
       self.ship_vy = -abs(self.ship_vy)
       pyxel.play(0, 1)
 
+  # オブジェクト（宇宙飛行士・隕石を追加する）
+  def add_objects(self):
+    if self.timer == 0:
+      self.add_survivor()
+      self.add_meteor()
+      self.timer = OBJECT_SPAWN_INTERVAL
+    else:
+      self.timer -= 1
+
+  # 宇宙船とオブジェクトの衝突判定
+  def check_ship_collision(self, x, y):
+    return abs(self.ship_x - x) <= 5 and abs(self.ship_y - y) <= 5
+
+  # 宇宙船と宇宙飛行士の衝突処理
+  def handle_survivor_collisions(self):
+    new_survivors = []
+    for survivor_x, survivor_y in self.survivors:
+      if self.check_ship_collision(survivor_x, survivor_y):
+        self.score += 1
+        pyxel.play(1, 2)
+      else:
+        new_survivors.append((survivor_x, survivor_y))
+      self.survivors = new_survivors
+  
+  # 宇宙船と隕石の衝突処理
+  def handle_meteor_collisions(self):
+    for meteor_x, meteor_y in self.meteors:
+      if self.check_ship_collision(meteor_x, meteor_y):
+        self.is_exploding =True
+        self.is_title = True
+        pyxel.play(1, 3)
+
+  
+
   def update(self):
     if self.is_title:
       if pyxel.btnp(pyxel.KEY_RETURN):
@@ -91,6 +145,10 @@ class OneKeyGame():
         self.reset_game()
       return
     self.update_ship()
+    self.add_objects()
+    self.handle_survivor_collisions()
+    self.handle_meteor_collisions()
+
 
   def draw_sky(self):
     num_grads = 4
@@ -115,31 +173,30 @@ class OneKeyGame():
     offset_x = offset_y * -self.ship_dir
 
     # 左右方向のジェットを描画する
-    pyxel.blt(
-        self.ship_x - self.ship_dir * 3 + offset_x,
-        self.ship_y,
-        0,
-        0,
-        0,
-        8,
-        8,
-        0,
-    )
+
+    pyxel.blt(self.ship_x - self.ship_dir * 3 + offset_x, self.ship_y, 0, 0, 0, 8, 8, 0)
 
     # 下方向のジェットを描画する
-    pyxel.blt(
-        self.ship_x,
-        self.ship_y + 3 + offset_y,
-        0,
-        8,
-        8,
-        8,
-        8,
-        0,
-    )
+    pyxel.blt(self.ship_x, self.ship_y + 3 + offset_y, 0, 8, 8, 8, 8, 0)
 
     # 宇宙船を描画する
     pyxel.blt(self.ship_x, self.ship_y, 0, 8, 0, 8, 8, 0)
+
+    # 爆発を描画する
+    if self.is_exploding:
+      blast_x = self.ship_x + pyxel.rndi(1, 6)
+      blast_y = self.ship_y + pyxel.rndi(1, 6)
+      blast_radius = pyxel.rndi(2, 4)
+      blast_color = pyxel.rndi(7, 10)
+      pyxel.circ(blast_x,blast_y, blast_radius, blast_color)
+
+  def draw_survivors(self):
+    for survivor_x, survivor_y in self.survivors:
+      pyxel.blt(survivor_x, survivor_y, 0, 16, 0, 8, 8, 0)
+
+  def draw_meteors(self):
+    for meteor_x, meteor_y in self.meteors:
+      pyxel.blt(meteor_x, meteor_y, 0, 24, 0, 8, 8, 0)
 
   def draw_score(self):
     score = f"SCORE:{self.score:04}"
@@ -155,6 +212,8 @@ class OneKeyGame():
   def draw(self):
     self.draw_sky()
     self.draw_ship()
+    self.draw_survivors()
+    self.draw_meteors()
     self.draw_score()
 
     if self.is_title:
